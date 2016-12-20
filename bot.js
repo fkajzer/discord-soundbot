@@ -21,7 +21,7 @@ bot.on('message', (message) => {
 
   // Show list of commands
   if (message.content === '!commands') {
-    listCommands(message.author);
+    listCommands(message.author.id);
     return;
   }
 
@@ -99,7 +99,7 @@ function listCommands(user) {
     '!remove <sound>   Remove specified sound',
     '```'
   ];
-  user.sendMessage(message.join('\n'));
+  bot.sendMessage(user, message.join('\n'));
 }
 
 function listMostPlayed(channelId) {
