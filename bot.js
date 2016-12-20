@@ -57,8 +57,8 @@ bot.on('message', (message) => {
   const voiceChannel = message.author.voiceChannel;
 
   // Abort if user is not connected to any voice channel
-  if (voiceChannel === undefined) {
-    message.reply('Join a voice channel first!');
+  if (voiceChannel === null) {
+    bot.sendMessage(message.author, 'Join a voice channel first!');
     return;
   }
 
