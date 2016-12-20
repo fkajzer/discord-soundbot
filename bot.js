@@ -12,7 +12,7 @@ let queue = [];
 
 bot.on('message', (message) => {
   // Abort when PM
-  if(message.channel instanceof Discord.PMChannel) {
+  if (message.channel instanceof Discord.PMChannel)
     return;
 
   // Only listen for messages starting with '!'
@@ -38,7 +38,7 @@ bot.on('message', (message) => {
 
   // Show list of available sounds
   if (message.content === '!sounds') {
-    listAvailableSounds(sounds, message.author);
+    listAvailableSounds(sounds, message.author.id);
     return;
   }
 
@@ -47,14 +47,14 @@ bot.on('message', (message) => {
     const sound = message.content.replace('!remove ', '');
     if (sounds.includes(sound)) {
       removeSound(sound);
-      message.channel.sendMessage(`${sound} removed!`);
+      bot.sendMessage(message.channel.id, `${sound} removed!`);
     } else {
-      message.channel.sendMessage(`${sound} not found!`);
+      bot.sendMessage(message.channel.id, `${sound} not found!`);
     }
     return;
   }
 
-  const voiceChannel = message.member.voiceChannel;
+  const voiceChannel = message.author.voiceChannel;
 
   // Abort if user is not connected to any voice channel
   if (voiceChannel === undefined) {
@@ -64,7 +64,7 @@ bot.on('message', (message) => {
 
   // Stop playing and clear queue
   if (message.content === '!stop') {
-    voiceChannel.leave();
+    bot.leaveVoiceChannel(voiceChannel);
     queue = [];
     return;
   }
@@ -82,7 +82,7 @@ bot.on('message', (message) => {
     addToQueue(voiceChannel, sound);
 
     // Work through queue
-    if (bot.voiceConnections.array().length === 0)
+    if (bot.voiceConnection === undefined)
       playSoundQueue();
   }
 });
@@ -127,7 +127,7 @@ function findLongestWord(array) {
 
 function listAvailableSounds(sounds, user) {
   const message = sounds.map(sound => sound);
-  user.sendMessage(message);
+  bot.sendMessage(user, message);
 }
 
 function removeSound(sound) {
@@ -144,19 +144,23 @@ function playSoundQueue() {
   const file = `sounds/${nextSound.name}.mp3`;
   const voiceChannel = bot.channels.get(nextSound.channel);
 
-  voiceChannel.join().then((connection) => {
-    const dispatcher = connection.playFile(file);
-    dispatcher.on('end', () => {
-      updateCount(nextSound.name);
+  bot.joinVoiceChannel(voiceChannel, (error, connection) => {
+    if (error) {
+      console.log('Error occurred!');
+      console.log(error);
+      bot.leaveVoiceChannel(connection);
+    } else {
+      connection.playFile(file, (_, intent) => {
+        intent.on('end', () => {
+          updateCount(nextSound.name);
 
-      if (queue.length > 0)
-        playSoundQueue();
-      else
-        connection.disconnect();
-    });
-  }).catch((error) => {
-    console.log('Error occured!');
-    console.log(error);
+          if (queue.length > 0)
+            playSoundQueue();
+          else
+            bot.leaveVoiceChannel(connection);
+        });
+      });
+    }
   });
 }
 
