@@ -12,7 +12,7 @@ let queue = [];
 
 bot.on('message', (message) => {
   // Abort when PM
-  if (message.channel instanceof Discord.DMChannel)
+  if(message.channel instanceof Discord.PMChannel) {
     return;
 
   // Only listen for messages starting with '!'
