@@ -6,9 +6,32 @@ const Discord = require('discord.js');
 
 const db = low('db.json', { storage: fileAsync });
 db.defaults({ counts: [] }).value();
+db.defaults({ joinSounds: [] }).value();
 
 const bot = new Discord.Client();
 let queue = [];
+
+bot.on('voiceJoin', (channel, user) => {
+  if (user.id === bot.user.id) return;
+  if (channel.id === user.voiceChannel.server.afkChannel.id) return;
+  const joinUser = db.get('joinSounds').find({ user: user.id }).value();
+  if (joinUser !== undefined && joinUser.play === true) {
+    addToQueue(bot.channels.get(channel.id), joinUser.sound);
+    db.get('joinSounds').find({ user: user.id }).assign({ play: false }).value();
+    if (bot.voiceConnection === undefined) playSoundQueue();
+  }
+});
+
+bot.on('voiceSwitch', (oldChannel, newChannel, user) => {
+  if (newChannel.id === user.voiceChannel.server.afkChannel.id)
+    db.get('joinSounds').find({ user: user.id }).assign({ play: true }).value();
+  else if (oldChannel.id !== user.voiceChannel.server.afkChannel.id)
+    db.get('joinSounds').find({ user: user.id }).assign({ play: false }).value();
+});
+
+bot.on('voiceLeave', (channel, user) => {
+  db.get('joinSounds').find({ user: user.id }).assign({ play: true }).value();
+});
 
 bot.on('message', (message) => {
   // Abort when PM
@@ -51,6 +74,13 @@ bot.on('message', (message) => {
     } else {
       bot.sendMessage(message.channel.id, `${sound} not found!`);
     }
+    return;
+  }
+
+  if (message.content.startsWith('!joinsound ')) {
+    const sound = message.content.replace('!joinsound ', '');
+    if (sounds.includes(sound))
+      setJoinSound(message.author, sound);
     return;
   }
 
@@ -166,6 +196,16 @@ function updateCount(playedSound) {
     db.write();
   } else {
     db.get('counts').push({ name: playedSound, count: 1 }).value();
+  }
+}
+
+function setJoinSound(joinUser, joinSound) {
+  const user = db.get('joinSounds').find({ user: joinUser.id }).value();
+  if (user) {
+    db.get('joinSounds').find({ user: joinUser.id })
+      .assign({ sound: joinSound, play: true }).value();
+  } else {
+    db.get('joinSounds').push({ user: joinUser.id, sound: joinSound, play: true }).value();
   }
 }
 
