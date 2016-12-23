@@ -18,7 +18,7 @@ class MessageHandler {
         message.author.sendMessage(sounds.map(sound => sound));
       } else {
         const voiceChannel = message.author.voiceChannel;
-        if (voiceChannel === undefined) {
+        if (voiceChannel === null) {
           message.reply('Join a voice channel first!');
         } else if (message.content === '!stop') {
           voiceChannel.leave();
