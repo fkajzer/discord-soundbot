@@ -86,6 +86,17 @@ class Util {
     });
   }
 
+  renameSound(oldName, newName, channel) {
+    const oldFile = `sounds/${oldName}.mp3`;
+    const newFile = `sounds/${newName}.mp3`;
+    try {
+      fs.renameSync(oldFile, newFile);
+      channel.sendMessage(`${oldName} renamed to ${newName}!`);
+    } catch (error) {
+      channel.sendMessage(`${oldName} not found!`);
+    }
+  }
+
   removeSound(sound, channel) {
     const file = `sounds/${sound}.mp3`;
     try {
