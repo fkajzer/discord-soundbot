@@ -1,3 +1,7 @@
+## 0.6.0 (2017-02-27)
+
++ Added possibility to delete `!<sound>` messages after playthrough.
+
 ## 0.5.0 (2016-12-29)
 
 + Added `!rename` command

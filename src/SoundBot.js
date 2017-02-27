@@ -29,8 +29,8 @@ class SoundBot extends Discord.Client {
     this.messageHandler.handle(message);
   }
 
-  addToQueue(voiceChannel, sound) {
-    this.queue.push({ name: sound, channel: voiceChannel.id });
+  addToQueue(voiceChannel, sound, messageTrigger) {
+    this.queue.push({ name: sound, channel: voiceChannel, message: messageTrigger });
   }
 
   playSoundQueue() {
@@ -47,6 +47,8 @@ class SoundBot extends Discord.Client {
         connection.playFile(file, (_, intent) => {
           intent.on('end', () => {
             Util.updateCount(nextSound.name);
+            if (config.get('deleteMessages') === true)
+              nextSound.message.delete();
 
             if (this.queue.length > 0)
               this.playSoundQueue();

@@ -1,4 +1,5 @@
 {
   "client_id": "YOUR_CLIENT/APPLICATION_ID",
-  "token": "YOUR_APP_BOT_USER_TOKEN"
+  "token": "YOUR_APP_BOT_USER_TOKEN",
+  "deleteMessages": false
 }
